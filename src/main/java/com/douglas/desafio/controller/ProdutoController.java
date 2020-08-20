@@ -5,6 +5,7 @@ import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.douglas.desafio.model.Produto;
 import com.douglas.desafio.service.ProdutoService;
 
+@CrossOrigin(maxAge = 3600)
 @RestController
 @RequestMapping(value = "/produto")
 public class ProdutoController {
@@ -33,9 +35,9 @@ public class ProdutoController {
 		return ResponseEntity.created(uri).body(produto);
 	}
 
-	@GetMapping(value = "/{sku}")
-	public ResponseEntity<?> buscarSku(@PathVariable String sku) {
-		Produto produto = service.buscarSku(sku);
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<?> buscarId(@PathVariable Long id) {
+		Produto produto = service.buscarId(id);
 		return ResponseEntity.ok().body(produto);
 	}
 

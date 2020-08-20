@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,45 +41,37 @@ public class PedidoService {
 	}
 	
 	@Transactional
-	public Pedido adicionarProduto(Long id, List<ProdutoPedido> produtoPedidos) {
+	public Pedido adicionarProduto(Long id, ProdutoPedido produtoPedido) {
 		Pedido pedido = buscarId(id);
-		produtoPedidos.forEach(produtoPedido -> {
-			ProdutoPedido prodPed = validarProdutoPedido(produtoPedido, pedido);
-			pedido.setTotalCompra(pedido.getTotalCompra() + (prodPed.getProduto().getPreco() * prodPed.getQuantidade()));
-			prodPed.setPedido(pedido);
-			produtoPedidorepository.save(prodPed);
-		});
+		ProdutoPedido prodPed = validarProdutoPedido(produtoPedido, pedido);
+		pedido.setTotalCompra(pedido.getTotalCompra() + (prodPed.getProduto().getPreco() * prodPed.getQuantidade()));
+		prodPed.setPedido(pedido);
+		produtoPedidorepository.save(prodPed);
 		
 		return pedido;
 	}
 	
 	@Transactional
-	public Pedido removerProduto(Long id, List<ProdutoPedido> produtoPedidos) {
-		Pedido pedido = buscarId(id);
-		produtoPedidos.forEach(produtoPedido -> {
-			ProdutoPedido prodPed = produtoPedidorepository.findById(produtoPedido.getId()).orElseThrow(() -> new RuntimeException("Não encontrado o ProdutoPedido de id" + produtoPedido.getId()));
-			
-			Produto produto = prodPed.getProduto();
-			produto.setQuantidade(produto.getQuantidade() + prodPed.getQuantidade());
-			
-			produtoService.salvar(produto);
-			
-			pedido.setTotalCompra(pedido.getTotalCompra() - (prodPed.getProduto().getPreco() * prodPed.getQuantidade()));
-			pedido.removerProduto(prodPed);
-			produtoPedidorepository.delete(prodPed);
-		});
+	public Pedido removerProduto(Long idPedido, Long idProdutoPedido) {
+		Pedido pedido = buscarId(idPedido);
+		ProdutoPedido prodPed = produtoPedidorepository.findById(idProdutoPedido).orElseThrow(() -> new RuntimeException("Não encontrado o ProdutoPedido de id" + idProdutoPedido));
+		
+		Produto produto = prodPed.getProduto();
+		produto.setQuantidade(produto.getQuantidade() + prodPed.getQuantidade());
+		
+		produtoService.salvar(produto);
+		
+		pedido.setTotalCompra(pedido.getTotalCompra() - (prodPed.getProduto().getPreco() * prodPed.getQuantidade()));
+		pedido.removerProduto(prodPed);
+		produtoPedidorepository.delete(prodPed);
 		
 		return repository.save(pedido);
 	}
 	
 	@Transactional
 	public Pedido editar(Pedido novoPedido) {
-		Pedido pedido = buscarId(novoPedido.getId());
-
-		if (CompareToBuilder.reflectionCompare(novoPedido, pedido) != 0) {
-			return repository.save(novoPedido);
-		}
-		return pedido;
+		buscarId(novoPedido.getId());
+		return repository.save(novoPedido);
 	}
 	
 	@Transactional(readOnly = true)

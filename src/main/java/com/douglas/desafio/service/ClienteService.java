@@ -1,7 +1,6 @@
 package com.douglas.desafio.service;
 
-import java.util.Optional;
-
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +20,27 @@ public class ClienteService {
 	}
 	
 	@Transactional(readOnly = true)
-	public Cliente buscarCpf(Long cpf) {
-		return repository.findByCpf(cpf);
-	}
-	
-	@Transactional(readOnly = true)
 	public Iterable<Cliente> buscarTodos() {
 		return repository.findAll();
 	}
 	
 	@Transactional(readOnly = true)
-	public Optional<Cliente> buscarId(Long id) {
-		return repository.findById(id);
+	public Cliente buscarId(Long id) {
+		return repository.findById(id).orElseThrow(() -> new RuntimeException("Não encontrado Cliente com o id :" + id));
 	}
 	
 	@Transactional
 	public void deletar(Long id) {
 		repository.deleteById(id);
+	}
+	
+	@Transactional
+	public Cliente editar(Cliente novoCliente) {
+		Cliente cliente = buscarId(novoCliente.getId());
+
+		if (CompareToBuilder.reflectionCompare(novoCliente, cliente) != 0) {
+			return repository.save(novoCliente);
+		}
+		return cliente;
 	}
 }
